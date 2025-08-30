@@ -102,6 +102,8 @@ can be accessed [here](/PIIDetectionModel.mlpackage).
 
 ## Test Data Notice
 
-This repository contains only dummy/test data for demonstration purposes.
+This repository contains only dummy/test data for demonstration purposes (which is made
+available [here](https://drive.google.com/file/d/1w34VHgxumKWLHSuQ5nzJJXJ5d2vHNAsU/view?usp=drive_link) instead of
+GitHub).
 All API keys and credentials shown are fake and non-functional.
 
