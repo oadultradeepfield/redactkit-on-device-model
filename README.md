@@ -100,3 +100,8 @@ torch~=2.8.0
 More information on using the exported model is available in the [frontend repository](). The open-sourced model file
 can be accessed [here](/PIIDetectionModel.mlpackage).
 
+## Test Data Notice
+
+This repository contains only dummy/test data for demonstration purposes.
+All API keys and credentials shown are fake and non-functional.
+
