@@ -61,7 +61,7 @@ def call_openai_to_generate_text(
     for attempt in range(retries):
         try:
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-nano",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {
@@ -70,8 +70,7 @@ def call_openai_to_generate_text(
                         + placeholder_prompt,
                     },
                 ],
-                max_tokens=200,
-                temperature=0.7,
+                temperature=0.5,
                 top_p=0.9,
             )
             return response.choices[0].message.content.strip()
@@ -204,7 +203,6 @@ class BIOGenerator:
         Generates multiple annotated NER training samples.
 
         Args:
-            openai_prompt: Prompt for generating each sample's placeholder text.
             num_samples: Number of samples to generate.
 
         Returns:
