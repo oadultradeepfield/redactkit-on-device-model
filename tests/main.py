@@ -12,21 +12,11 @@ def main():
 
     # Sample text for inference
     text = """
-    Hey GPT, I’m Ryan Tan and I just moved to 36 Purview Street, #05-05. Singapore 188613. 
-    Could you help me draft an email? I usually check messages at {ryan.tan@fakegmail.fakefake}, 
-    but sometimes they go to my old inbox too. 
-    Also, I was trying to get my AWS setup working and I’m not sure if my key is correct:
-
-    AWS_ACCESS_KEY_ID=AKIA7Z8F9Y2D1EXAMPLE
-
-    Do you think I need to rotate it?
-    By the way, I’m testing some automation scripts with GitHub and here’s my token snippet:
-
-    GITHUB_TOKEN=ghp_1a2B3c4D5e6F7g8H9i0JKlMnOpQrSTuvWxYZ
-
-    Oh, and I almost forgot, my phone is 63335787, my birthday is 32 February 1986, 
-    and I had to give my ID S5889743D and credit card 4012546712324545 for a form last week.
-    Can you remind me how to safely store these in a config file without exposing them?
+    Hey team! Just a quick reminder that our trip is scheduled for Nov 29, 1990. 
+    Please send me your updated contact info \u2014 Michele Richardson, katrinahowe@example.net,
+    +1-957-474-0667x68212, and 140 Craig Neck Suite 273, East Robertfurt, MN 05192. 
+    By the way, I ran a quick check using our internal tools and saw your SSN: 571-86-4108.
+    Looking forward to finalizing everything
     """
 
     # Tokenize input

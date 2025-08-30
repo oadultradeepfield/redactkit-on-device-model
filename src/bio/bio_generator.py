@@ -7,36 +7,33 @@ from typing import List, Dict
 from faker import Faker
 from openai import OpenAI, OpenAIError
 
-SYSTEM_PROMPT = """You are simulating user-generated text for NER training, focusing on natural dialogues or messages 
-where some users might inadvertently expose PII or sensitive API keys. Task: Generate natural-looking conversational or 
-textual snippets containing placeholders for PII and realistic fake API keys.
+SYSTEM_PROMPT = """
+You generate natural-looking text snippets for NER training that include personal and sensitive information.
+
 Rules:
-- PII placeholders must be wrapped in curly braces exactly as: {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}.
-- Generate realistic fake API keys directly in text (not placeholders), using only letters (a-z, A-Z) and digits (0-9),
- respecting these formats:
-  * AWS keys: AKIA + 16 uppercase alphanumeric chars (A-Z, 0-9), e.g., AKIAIOSFODNN7EXAMPLE
-  * OpenAI keys: sk- + 48 alphanumeric chars (a-z, A-Z, 0-9), e.g., sk-1234abcd5678EFGH9012ijkl3456MNOP7890qrst1234UVWX
-  * GitHub tokens: ghp_ + 36 alphanumeric chars, e.g., ghp_1234abcd5678EFGH9012ijkl3456MNOP7890
-  * Stripe keys: sk_live_ or pk_test_ + 24 alphanumeric chars, e.g., sk_live_1234abcd5678EFGH9012ij
-  * Generic API keys: random 32–64 alphanumeric chars
-- Each text must include at least one instance (or all) of each PII placeholder somewhere within the text.
-- Include 1–2 API keys in natural locations such as code snippets, config files, logs, error messages, or conversation context.
-- Write 4–5 sentences that follow the example I give you below.
-- The tone should simulate real user behavior—unintentional disclosure, mundane conversation, or troubleshooting context.
-- Do not include explanations, tags, or metadata. Output only the generated text snippet.
+1. Include all PII placeholders exactly as: {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}.
+2. Include 1–2 realistic API keys naturally in the text. Use these formats:
+   - AWS: AKIA + 16 uppercase letters/digits
+   - OpenAI: sk- + 48 letters/digits
+   - GitHub: ghp_ + 36 letters/digits
+   - Stripe: sk_live_ or pk_test_ + 24 letters/digits
+   - Generic: 32–64 letters/digits
+3. Placeholders and API keys must appear in context (code, chat, logs, config files, emails, etc.).
+4. Tone: natural and conversational.
+5. Output only the generated snippet. No explanations, tags, or metadata.
 """
 
 EXAMPLES = [
-    "During today’s project sync, {FULL_NAME} shared his new social security number {SSN} to expedite background checks. Also, Jane mentioned her passport number X12345678 for travel approval. Please verify these against the database.",
-    "Hello support, my name is {FULL_NAME}, and my account number is 987654321. I noticed unauthorized transactions on my bank card ending {CC}. My full billing address is {ADDR}. Kindly freeze my account ASAP.",
-    "Dear HR, I’m forwarding my onboarding docs. My employee ID is EID202589, and attached is a scanned copy of my driver’s license number D1234567890. Also, my phone is {PHONE} for any urgent contact.",
-    "Recent leaks show a database of users with detailed info: names, DOBs, and credit card numbers like {CC} exposed, alongside emails such as {EMAIL}.",
-    "Alice: I can’t find my tax documents! Bob: Did you check your last tax return? I remember your SSN was {SSN} there. Alice: Yes, and it’s also in my email: {EMAIL}. I need to update my direct deposit info with account number 123456789.",
-    "{\n  'api_key': 'sk_live_51Hfdjd9f3o87sxEXAMPLE',\n  'user_email': '{EMAIL}',\n  'user_phone': '{PHONE}',\n  'address': '{ADDR}'\n}",
-    "I recently returned the product. My order number is ORD123456, and you can refund to the card ending {CC}. Contact me at {EMAIL} or {PHONE} if you need more details.",
-    "Excited to share my vacation plans! Flights booked under passport number P98765432 and hotel reservations tied to my corporate email {EMAIL}.",
-    "My full legal name is {FULL_NAME}, reachable at {EMAIL}. My LinkedIn profile contains my phone number {PHONE} and my current address is {ADDR}.",
-    "Got my new health insurance card today: ID HI-123456789. Also got my new bank card ending in {CC}. Feeling nervous about sharing my full SSN {SSN} in the forms.",
+    "A developer shares a snippet in a team chat containing code, accidentally leaving API keys and placeholders like {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}.",
+    "A customer emails support including billing info and personal details using {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}, and pastes an API key for a service.",
+    "HR sends onboarding instructions mentioning {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}, with a sample configuration file that has an API key.",
+    "Friends planning a trip casually share {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}, and an OpenAI key in a chat message.",
+    "A developer debugging logs shows {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}, and accidentally exposes a GitHub or AWS API key.",
+    "Support ticket submission includes {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE} for account verification along with a Stripe key in text.",
+    "A vacation planning group chat contains {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}, and a random API key mentioned in passing.",
+    "A casual business chat shares {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}, and an AWS or GitHub key while discussing system access.",
+    "A debug output or error log shows {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE} and API credentials in context.",
+    "Family group chat messages with {FULL_NAME}, {EMAIL}, {PHONE}, {ADDR}, {SSN}, {CC}, {DATE}, and a test API key for a shared tool.",
 ]
 
 
@@ -148,6 +145,57 @@ def label_tokens(tokens: List[str], annotations: Dict[str, str]) -> List[str]:
     return labels
 
 
+def generate_sample(faker: Faker) -> Dict[str, str]:
+    """
+    Generates a single sample dictionary containing realistic fake personal data
+    with varied formats for certain fields.
+
+    Fields:
+        FULL_NAME: Full name as a string.
+        EMAIL: Email address as a string.
+        PHONE: Phone number in various formats.
+        ADDR: Address in multiple possible formats (comma-separated).
+        SSN: Social Security Number as a string.
+        CC: Credit card number with random card type.
+        DATE: Date in multiple possible string formats.
+
+    Returns:
+        dict: A dictionary containing the generated sample with keys:
+              FULL_NAME, EMAIL, PHONE, ADDR, SSN, CC, DATE.
+    """
+    return {
+        "FULL_NAME": faker.name(),
+        "EMAIL": faker.email(),
+        "PHONE": random.choice(
+            [
+                faker.phone_number,
+                lambda: f"+1-{random.randint(100,999)}-{random.randint(100,999)}-{random.randint(1000,9999)}",
+            ]
+        )(),
+        "ADDR": random.choice(
+            [
+                lambda: faker.address().replace("\n", ", "),
+                lambda: f"{faker.street_address()}, {faker.city()}, {faker.state_abbr()} {faker.zipcode()}",
+            ]
+        )(),
+        "SSN": faker.ssn(),
+        "CC": random.choice(
+            [
+                lambda: faker.credit_card_number(card_type="visa"),
+                lambda: faker.credit_card_number(card_type="mastercard"),
+                lambda: faker.credit_card_number(card_type="amex"),
+            ]
+        )(),
+        "DATE": random.choice(
+            [
+                lambda: faker.date(),
+                lambda: faker.date(pattern="%d/%m/%Y"),
+                lambda: faker.date(pattern="%b %d, %Y"),
+            ]
+        )(),
+    }
+
+
 class BIOGenerator:
     """
     Generates synthetic NER training samples with realistic PII content.
@@ -169,15 +217,7 @@ class BIOGenerator:
         Returns:
             Dictionary mapping placeholder names to generated fake values.
         """
-        return {
-            "FULL_NAME": self.faker.name(),
-            "EMAIL": self.faker.email(),
-            "PHONE": self.faker.phone_number(),
-            "ADDR": self.faker.address().replace("\n", ", "),
-            "SSN": self.faker.ssn(),
-            "CC": self.faker.credit_card_number(),
-            "DATE": self.faker.date(),
-        }
+        return generate_sample(self.faker)
 
     def generate_sample(self, openai_prompt: str) -> Dict:
         """
