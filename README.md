@@ -71,8 +71,8 @@ python -m tests.main
 CoreML allows machine learning models to run on Apple devices (iPhone, iPad, etc.). We chose CoreML due to our expertise
 in Swift.
 
-* The model can also be converted to other formats like ONNX for Android, but this project focuses on iOS for fast
-  prototyping.
+The model can also be converted to other formats like ONNX for Android, but this project focuses on iOS for fast
+prototyping.
 
 Convert the trained model to CoreML:
 
@@ -80,7 +80,7 @@ Convert the trained model to CoreML:
 python -m src.core_ml.main --model_path ./pii_neurobert_mini_model
 ```
 
-* This creates `PIIDetectionModel.mlpackage`, compatible with Xcode and Swift development.
+This creates `PIIDetectionModel.mlpackage`, compatible with Xcode and Swift development.
 
 ## Libraries Used
 
