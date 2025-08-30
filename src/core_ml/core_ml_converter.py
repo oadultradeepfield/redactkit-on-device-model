@@ -5,15 +5,15 @@ import torch.nn as nn
 from transformers import BertForTokenClassification, AutoTokenizer
 
 
-class SoftmaxWrapper(nn.Module):
+class ArgmaxWrapper(nn.Module):
     def __init__(self, model):
         super().__init__()
         self.model = model
-        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, input_ids, attention_mask):
         outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
-        return self.softmax(outputs.logits)
+        argmax_tensor = torch.argmax(outputs.logits, dim=-1)
+        return argmax_tensor.flatten()
 
 
 class CoreMLConverter:
@@ -46,7 +46,7 @@ class CoreMLConverter:
         )
         dummy_attention_mask = torch.ones((1, self.max_length), dtype=torch.long)
 
-        wrapped_model = SoftmaxWrapper(self.model)
+        wrapped_model = ArgmaxWrapper(self.model)
         traced_model = torch.jit.trace(
             wrapped_model, (dummy_input_ids, dummy_attention_mask)
         )
@@ -76,8 +76,10 @@ class CoreMLConverter:
                     name="attention_mask", shape=(1, self.max_length), dtype=np.int32
                 ),
             ],
-            outputs=[ct.TensorType(name="logits", dtype=np.float32)],
-            compute_units=ct.ComputeUnit.ALL,  # Prefer Neural Engine when available
+            outputs=[ct.TensorType(name="predictions", dtype=np.int32)],
+            convert_to="mlprogram",
+            compute_units=ct.ComputeUnit.ALL,
+            debug=True,
         )
 
         # Metadata
@@ -92,8 +94,8 @@ class CoreMLConverter:
         coreml_model.input_description["attention_mask"] = (
             "Attention mask for input tokens"
         )
-        coreml_model.output_description["logits"] = (
-            "Raw logits for BIO tag classification"
+        coreml_model.output_description["predictions"] = (
+            "Predicted class IDs for each token"
         )
 
         coreml_model.save(output_path)

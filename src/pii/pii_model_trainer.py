@@ -3,11 +3,11 @@ from typing import Tuple
 import evaluate
 from datasets import Dataset
 from transformers import (
-    BertTokenizer,
     BertForTokenClassification,
     Trainer,
     DataCollatorForTokenClassification,
     TrainingArguments,
+    AutoTokenizer,
 )
 
 from src.pii.pii_label import PIILabel
@@ -42,7 +42,7 @@ class PIIModelTrainer:
     def __init__(self, model_name: str = "boltuix/NeuroBERT-Mini"):
         self.model_name = model_name
         self.num_labels = len(PIILabel.LABEL_LIST)
-        self.tokenizer = BertTokenizer.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = BertForTokenClassification.from_pretrained(
             model_name, num_labels=self.num_labels
         )
