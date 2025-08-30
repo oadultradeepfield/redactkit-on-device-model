@@ -1,6 +1,8 @@
-from typing import Tuple
+from typing import Tuple, List, Dict
 
 import evaluate
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 from datasets import Dataset
 from transformers import (
     BertForTokenClassification,
@@ -11,6 +13,8 @@ from transformers import (
 )
 
 from src.pii.pii_label import PIILabel
+
+SAVE_PATH = "results/"
 
 
 def _split_dataset(
@@ -30,6 +34,70 @@ def _split_dataset(
     val_dataset = val_test_split["test"]
     test_dataset = dataset_dict["test"]
     return train_dataset, val_dataset, test_dataset
+
+
+def plot_loss_curve(log_history: List[Dict], warmup_steps: int = 500):
+    """
+    Plots training and evaluation loss curves from trainer log history,
+    with a vertical line marking the end of warmup steps.
+    """
+    train_loss = [(log["step"], log["loss"]) for log in log_history if "loss" in log]
+    eval_loss = [
+        (log["step"], log["eval_loss"]) for log in log_history if "eval_loss" in log
+    ]
+
+    if not train_loss and not eval_loss:
+        print("No loss logs found.")
+        return
+
+    plt.figure(figsize=(9, 6))
+    if train_loss:
+        steps, loss_vals = zip(*train_loss)
+        plt.plot(steps, loss_vals, label="Training Loss")
+    if eval_loss:
+        steps, eval_vals = zip(*eval_loss)
+        plt.plot(steps, eval_vals, label="Validation Loss")
+
+    # vertical line at warmup step
+    plt.axvline(x=warmup_steps, color="red", linestyle="--", label="Warmup End")
+
+    plt.xlabel("Steps")
+    plt.ylabel("Loss")
+    plt.title("Training & Validation Loss Curve")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(SAVE_PATH + "loss_curve.png")
+    plt.close()
+
+
+def plot_f1_score(log_history: List[Dict], warmup_steps: int = 500):
+    """
+    Plots F1 score progression from trainer log history,
+    with a vertical line marking the end of warmup steps.
+    """
+    eval_f1 = [(log["step"], log["eval_f1"]) for log in log_history if "eval_f1" in log]
+
+    if not eval_f1:
+        print("No F1 score logs found.")
+        return
+
+    steps, f1_vals = zip(*eval_f1)
+    plt.figure(figsize=(9, 6))
+    plt.plot(steps, f1_vals, marker="o", label="Validation F1 Score", color="green")
+
+    # vertical line at warmup step
+    plt.axvline(x=warmup_steps, color="red", linestyle="--", label="Warmup End")
+    plt.gca().yaxis.set_major_formatter(mtick.FormatStrFormatter("%.3f"))
+
+    plt.xlabel("Steps")
+    plt.ylabel("F1 Score")
+    plt.title("Validation F1 Score Progression")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(SAVE_PATH + "f1_curve.png")
+    plt.close()
 
 
 class PIIModelTrainer:
@@ -112,5 +180,9 @@ class PIIModelTrainer:
         print("Evaluating on test set...")
         test_metrics = trainer.evaluate(eval_dataset=test_dataset)
         print("Test metrics:", test_metrics)
+
+        # Use plotting functions
+        plot_loss_curve(trainer.state.log_history)
+        plot_f1_score(trainer.state.log_history)
 
         return trainer

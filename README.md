@@ -95,9 +95,11 @@ transformers~=4.56.0
 coremltools~=8.3.0
 numpy~=2.3.2
 torch~=2.8.0
+matplotlib~=3.10.6
 ```
 
-More information on using the exported model is available in the [frontend repository](https://github.com/Spchdt/RedactKit). The open-sourced model file
+More information on using the exported model is available in
+the [frontend repository](https://github.com/Spchdt/RedactKit). The open-sourced model file
 can be accessed [here](/PIIDetectionModel.mlpackage).
 
 ## Test Data Notice
