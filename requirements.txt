@@ -1,0 +1,8 @@
+Faker~=37.6.0
+openai~=1.102.0
+evaluate~=0.4.5
+datasets~=4.0.0
+transformers~=4.56.0
+coremltools~=8.3.0
+numpy~=2.3.2
+torch~=2.8.0

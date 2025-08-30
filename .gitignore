@@ -217,7 +217,3 @@ __marimo__/
 
 # PyCharm
 .idea/
-
-# model
-pii_neurobert_mini_model/
-PIIDetectionModel.mlpackage
